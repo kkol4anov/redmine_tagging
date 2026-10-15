@@ -4,7 +4,8 @@ Redmine::Plugin.register :redmine_tagging do
   name 'Redmine Tagging Plugin'
   author 'Restream'
   description 'This plugin adds tagging features to Redmine.'
-  version '0.1.6'
+  version '0.2.0.rc1'
+  requires_redmine version_or_higher: '4.2.0'
 
   settings default: {
       dynamic_font_size: '1',
@@ -92,12 +93,15 @@ Redmine::Plugin.register :redmine_tagging do
   end
 end
 
-ActionDispatch::Callbacks.to_prepare do
-  require 'tagging_plugin/tagging_patches'
-  require 'tagging_plugin/api_template_handler_patch'
-  require 'redmine_tagging'
-  require File.expand_path('../app/helpers/tagging_helper', __FILE__)
-  ActionView::Base.send :include, TaggingHelper
-end
+# Hook listeners are registered once, not once per development reload.
+require 'tagging_plugin/tagging_hooks'
 
-require_dependency 'tagging_plugin/tagging_hooks'
+Rails.configuration.to_prepare do
+  require_dependency 'tagging_helper'
+  require_dependency 'tagging_plugin/context_helper'
+  require_dependency 'tagging_plugin/tags_helper'
+  require_dependency 'redmine_tagging'
+  require_dependency 'tagging_plugin/tagging_patches'
+  require_dependency 'tagging_plugin/api_template_handler_patch'
+  ActionController::Base.helper TaggingHelper
+end

@@ -1,4 +1,4 @@
-class ScrubBody < ActiveRecord::Migration
+class ScrubBody < ActiveRecord::Migration[4.2]
   def up
     Issue.where("description like '%{{tag(%'").each {|issue|
       issue.description = issue.description.gsub(/[{]{2}tag[(][^)]*[)][}]{2}/i, '')
@@ -13,18 +13,18 @@ class ScrubBody < ActiveRecord::Migration
       content.data = content.data.gsub(/[{]{2}tag[(][^)]*[)][}]{2}/i, '')
       content.save!
     }
-  end
 
-  contexts = Project.where(nil).collect{|p| p.identifier}
-  contexts << contexts.collect{|c| c.gsub('-', '_')}
-  contexts.flatten!
+    contexts = Project.where(nil).collect{|p| p.identifier}
+    contexts << contexts.collect{|c| c.gsub('-', '_')}
+    contexts.flatten!
 
-  ActsAsTaggableOn::Tag.where(
-      "not name like '#%' and id in (select tag_id from taggings where taggable_type in ('WikiPage', 'Issue') and context in (?))",
-      contexts
-  ).each do |tag|
-      tag.name = "##{tag.name}"
-      tag.save
+    ActsAsTaggableOn::Tag.where(
+        "not name like '#%' and id in (select tag_id from taggings where taggable_type in ('WikiPage', 'Issue') and context in (?))",
+        contexts
+    ).each do |tag|
+        tag.name = "##{tag.name}"
+        tag.save
+    end
   end
 
   def down

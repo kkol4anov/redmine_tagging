@@ -38,6 +38,7 @@ class IssueTag < ActiveRecord::Base
       where
         i.status_id=s.id
         and ti.taggable_id=i.id
+        and ti.taggable_type='Issue'
         and ti.tag_id=t.id
         #{project_condition}
       group
